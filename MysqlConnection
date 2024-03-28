@@ -1,0 +1,138 @@
+import mysql.connector
+
+# Establish connection
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password="Logi@mysql",
+  database="task"
+)
+
+# Create cursor
+mycursor = mydb.cursor()
+
+# query 1
+#Query to retrieve the movies released in a year
+query_choice = int(input("Enter the query number (1-7): "))
+year = None
+if query_choice == 1:
+    year = int(input("Enter the year: "))
+    query = """
+        SELECT Movie_Name ,Year_of_release
+        FROM MovieDetails
+        WHERE Year_of_release = %s
+    """
+    parameters = (year,)
+    mycursor.execute(query, parameters)
+    print("Movies released in the year", year)
+    for row in mycursor.fetchall():
+        print(row)
+
+#second query
+#Query to retrieve a movie with respect to its starting letter
+elif query_choice == 2:
+    year = int(input("Enter the year: "))
+    starting_letter = input("Enter the starting letter of the movie name: ").upper()
+    query = """
+        SELECT Movie_Name, Year_of_release
+        FROM MovieDetails
+        WHERE Year_of_release = %s AND Movie_Name LIKE %s
+    """
+    parameters = (year, starting_letter + '%')
+    mycursor.execute(query, parameters)
+    print("Movies released in the year", year, "starting with letter", starting_letter)
+    for row in mycursor.fetchall():
+        print(row)
+
+#third query
+#Query to retrieve a top rated movies upto a range
+elif query_choice == 3:
+    top_n = int(input("Enter the number of top-rated movies you want to retrieve: "))
+    query = """
+        SELECT Movie_Name, Year_of_release, Rating
+        FROM MovieDetails
+        ORDER BY Rating DESC
+        LIMIT %s
+    """
+    parameters = (top_n,)
+    mycursor.execute(query, parameters)
+    print("Top", top_n, "rated movies:")
+    for row in mycursor.fetchall():
+        print(row)
+#4
+#Query to find a specific movies is there or not
+elif query_choice == 4:
+    movie_name = input("Enter the name of the movie you want to search for: ")
+    query = """
+        SELECT *
+        FROM MovieDetails
+        WHERE Movie_Name = %s
+    """
+    parameters = (movie_name,)
+    mycursor.execute(query, parameters)
+    found_movie = mycursor.fetchone()
+    if found_movie:
+        print("Movie found:")
+        print(found_movie)
+    else:
+        print("Movie not found.")
+#5
+#Query to Find Average Rating of Movies Released in a Specific Year Range:
+        
+elif query_choice == 5:
+    start_year = int(input("Enter the start year of the range: "))
+    end_year = int(input("Enter the end year of the range: "))
+    query = """
+        SELECT AVG(Rating) AS Average_Rating
+        FROM MovieDetails
+        WHERE Year_of_release BETWEEN %s AND %s
+    """
+    parameters = (start_year, end_year)
+    mycursor.execute(query, parameters)
+    average_rating = mycursor.fetchone()[0]
+    if average_rating:
+        print(f"Average rating of movies released between {start_year} and {end_year}: {average_rating:.2f}")
+    else:
+        print("No movies found in the specified year range.")
+
+#Query to Retrieve Movies by Genre:
+elif query_choice == 6:
+    genre = input("Enter the genre you want to search for: ")
+    query = """
+        SELECT Movie_Name, Genre , Duration
+        FROM MovieDetails
+        WHERE Genre LIKE %s
+    """
+    parameters = ('%' + genre + '%',)
+    mycursor.execute(query, parameters)
+    genre_movies = mycursor.fetchall()
+    if genre_movies:
+        print(f"Movies found in the genre '{genre}':")
+        for movie in genre_movies:
+            print(movie)
+    else:
+        print(f"No movies found in the genre '{genre}'.")
+
+#query 7
+#Query to Retrieve Movies by Duration Range:
+elif query_choice == 7:
+    min_duration = int(input("Enter the minimum duration (in minutes): "))
+    max_duration = int(input("Enter the maximum duration (in minutes): "))
+    query = """
+        SELECT Movie_Name, Year_of_release, Duration, Rating
+        FROM MovieDetails
+        WHERE Duration BETWEEN %s AND %s
+    """
+    parameters = (min_duration, max_duration)
+    mycursor.execute(query, parameters)
+    duration_movies = mycursor.fetchall()
+    if duration_movies:
+        print(f"Movies found within the duration range of {min_duration} to {max_duration} minutes:")
+        for movie in duration_movies:
+            print(movie)
+    else:
+        print(f"No movies found within the duration range of {min_duration} to {max_duration} minutes.")
+
+
+# Close connection
+mydb.close()
